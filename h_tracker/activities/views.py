@@ -3,8 +3,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Workout
-from .serializers import WorkoutSerializer
+from .models import Workout, Meal
+from .serializers import WorkoutSerializer, MealSerializer
 
 
 class IsOwner(permissions.BasePermission):
@@ -59,3 +59,45 @@ class WorkoutChoicesView(APIView):
         return Response(
             {"workout_types": workout_types, "workout_statuses": workout_statuses}
         )
+
+
+class MealChoicesView(APIView):
+    """
+    API view to return meal type and status choices for frontend use.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        meal_types = [
+            {"value": choice[0], "label": choice[1]}
+            for choice in Meal.MEAL_TYPE_CHOICES
+        ]
+
+        meal_statuses = [
+            {"value": choice[0], "label": choice[1]} for choice in Meal.STATUS_CHOICES
+        ]
+
+        return Response({"meal_types": meal_types, "meal_statuses": meal_statuses})
+
+
+class MealViewSet(viewsets.ModelViewSet):
+    serializer_class = MealSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ["date", "meal_type", "status"]
+    ordering_fields = ["date", "created_at", "calories"]
+    ordering = ["-date", "-created_at"]
+    queryset = Meal.objects.all()  # Required for DRF router
+
+    def get_queryset(self):
+        """
+        Return meals for the current authenticated user only.
+        """
+        return Meal.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        """
+        Automatically set the user to the current authenticated user.
+        """
+        serializer.save(user=self.request.user)
