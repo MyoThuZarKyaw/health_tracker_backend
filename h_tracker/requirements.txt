@@ -2,3 +2,5 @@ django
 djangorestframework
 djangorestframework-simplejwt
 django-filter
+psycopg2-binary
+environs
