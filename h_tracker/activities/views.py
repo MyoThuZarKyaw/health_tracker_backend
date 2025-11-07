@@ -3,8 +3,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Workout, Meal
-from .serializers import WorkoutSerializer, MealSerializer
+from .models import Workout, Meal, Steps
+from .serializers import WorkoutSerializer, MealSerializer, StepsSerializer
 
 
 class IsOwner(permissions.BasePermission):
@@ -79,6 +79,43 @@ class MealChoicesView(APIView):
         ]
 
         return Response({"meal_types": meal_types, "meal_statuses": meal_statuses})
+
+
+class StepsViewSet(viewsets.ModelViewSet):
+    serializer_class = StepsSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ["date", "status"]
+    ordering_fields = ["date", "created_at", "total_steps"]
+    ordering = ["-date", "-created_at"]
+    queryset = Steps.objects.all()  # Required for DRF router
+
+    def get_queryset(self):
+        """
+        Return steps for the current authenticated user only.
+        """
+        return Steps.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        """
+        Automatically set the user to the current authenticated user.
+        """
+        serializer.save(user=self.request.user)
+
+
+class StepsChoicesView(APIView):
+    """
+    API view to return steps status choices for frontend use.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        steps_statuses = [
+            {"value": choice[0], "label": choice[1]} for choice in Steps.STATUS_CHOICES
+        ]
+
+        return Response({"steps_statuses": steps_statuses})
 
 
 class MealViewSet(viewsets.ModelViewSet):

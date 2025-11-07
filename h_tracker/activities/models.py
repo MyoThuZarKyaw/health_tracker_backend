@@ -74,3 +74,27 @@ class Meal(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.meal_type} on {self.date}"
+
+
+class Steps(models.Model):
+    STATUS_CHOICES = [
+        ("planned", "Planned"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="steps"
+    )
+    date = models.DateField()
+    total_steps = models.PositiveIntegerField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="planned")
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+        unique_together = ["user", "date", "created_at"]
+
+    def __str__(self):
+        return f"{self.user.email} - {self.total_steps} steps on {self.date}"
