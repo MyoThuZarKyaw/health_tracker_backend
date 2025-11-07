@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "env": {
+    "DEBUG": "False",
+    "ALLOWED_HOSTS": "*"
+  },
+  "builds": [
+    {
+      "src": "h_tracker/wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.12"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "h_tracker/wsgi.py"
+    }
+  ]
+}
