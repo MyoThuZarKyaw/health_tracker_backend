@@ -1,6 +1,6 @@
 services:
   web:
-    build: .
+    build: ..
     container_name: django_app
     command: python manage.py runserver 0.0.0.0:8000
     ports:
@@ -8,5 +8,5 @@ services:
     volumes:
       - .:/app
     env_file:
-      - .env
+      - ../.env
 
